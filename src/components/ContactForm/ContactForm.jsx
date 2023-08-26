@@ -1,35 +1,25 @@
-import { useState } from 'react';
 import { Button, Label, Form, InputName } from './ContactForm.styled';
-import { nanoid } from 'nanoid';
-import PropTypes from 'prop-types';
 
-export const ContactForm = ({ createUser }) => {
-  const [name, setName] = useState('');
-  const [number, setNumber] = useState('');
+import { useDispatch, useSelector } from 'react-redux';
+import { addUser } from 'redux/phonebookSlice';
+import { getContacts } from 'redux/selectors';
 
-  const onHandleChange = e => {
-    const { name, value } = e.target;
-    switch (name) {
-      case 'name':
-        setName(value);
-        break;
-      case 'number':
-        setNumber(value);
-        break;
-
-      default:
-        return;
-    }
-  };
+export const ContactForm = () => {
+  const contacts = useSelector(getContacts);
+  const dispatch = useDispatch();
 
   const onHandleSubmit = e => {
     e.preventDefault();
+    const form = e.target;
+    const name = form.name.value;
+    const number = form.number.value;
 
-    const id = nanoid(5);
-    createUser({ id, name, number });
-
-    setName('');
-    setNumber('');
+    if (contacts.some(contact => contact.name === name)) {
+      alert(`${name} is already in contacts`);
+      return;
+    }
+    dispatch(addUser(name, number));
+    form.reset();
   };
 
   return (
@@ -38,10 +28,8 @@ export const ContactForm = ({ createUser }) => {
         <Label>
           Name
           <InputName
-            onChange={onHandleChange}
             type="text"
             name="name"
-            value={name}
             pattern="^[a-zA-Zа-яА-Я]+(([' \-][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
             title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
             required
@@ -51,10 +39,8 @@ export const ContactForm = ({ createUser }) => {
         <Label>
           Number
           <InputName
-            onChange={onHandleChange}
             type="tel"
             name="number"
-            value={number}
             pattern="\+?\d{1,4}?[ .\-\s]?\(?\d{1,3}?\)?[ .\-\s]?\d{1,4}[ .\-\s]?\d{1,4}[ .\-\s]?\d{1,9}"
             title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
             required
@@ -64,8 +50,4 @@ export const ContactForm = ({ createUser }) => {
       </Form>
     </>
   );
-};
-
-ContactForm.propTypes = {
-  createUser: PropTypes.func.isRequired,
 };
